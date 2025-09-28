@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { MatchType } from "./Match";
 import { Round } from "./Round";
 import type { PlayerType } from "../App";
+import { API_BASE_URL } from "../config";
 
 type RoundsProps = {
   players: PlayerType[];
@@ -24,7 +25,7 @@ const createRound = async (players: PlayerType[], numOfPitches: number) => {
       numOfPitches: numOfPitches,
     };
 
-    const response = await fetch("http://localhost:8000/rounds/", {
+    const response = await fetch(`${API_BASE_URL}/rounds/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
