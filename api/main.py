@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 
-@app.post("/rounds/")
+@app.post("/create_round/")
 def create_round_request(request: CreateRoundRequest):
     try:
         if len(request.players) < 2:
