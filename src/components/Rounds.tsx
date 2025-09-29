@@ -25,7 +25,7 @@ const createRound = async (players: PlayerType[], numOfPitches: number) => {
       numOfPitches: numOfPitches,
     };
 
-    const response = await fetch(`${API_BASE_URL}/create-round/`, {
+    const response = await fetch(`${API_BASE_URL}/create_round/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
