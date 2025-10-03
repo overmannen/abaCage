@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import type { MatchType } from "./Match";
 import { Round } from "./Round";
 import type { PlayerType } from "../App";
-import { API_BASE_URL } from "../config";
 import { createRoundPitches, createRoundTeams } from "../APICalls";
 
 type RoundsProps = {

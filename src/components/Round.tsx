@@ -42,8 +42,6 @@ export const Round = ({ matches, onResultsSubmit }: RoundProps) => {
     setIsSubmitted(false);
   };
 
-  const hasResults = Object.keys(matchResults).length > 0;
-
   return (
     <div>
       <ul className="round-container">
