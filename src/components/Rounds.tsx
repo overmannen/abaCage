@@ -3,58 +3,30 @@ import type { MatchType } from "./Match";
 import { Round } from "./Round";
 import type { PlayerType } from "../App";
 import { API_BASE_URL } from "../config";
+import { createRoundPitches, createRoundTeams } from "../APICalls";
 
 type RoundsProps = {
   players: PlayerType[];
-  numOfPitches: number;
   onResultsRegistered: (
     matches: (MatchType & { homeGoals: number; awayGoals: number })[]
   ) => void;
   resetRounds: boolean;
+  roundSetting: string;
+  numOfTeams: number;
+  numOfPitches: number;
 };
 
 type RoundType = {
   matches: MatchType[];
 };
 
-const createRound = async (players: PlayerType[], numOfPitches: number) => {
-  try {
-    const playerNames = players.map((player) => player.name);
-    const requestData = {
-      players: playerNames,
-      numOfPitches: numOfPitches,
-    };
-
-    const response = await fetch(`${API_BASE_URL}/create_round/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-
-    if (result.status === "error") {
-      throw new Error(result.message);
-    }
-
-    return result.data.round;
-  } catch (error) {
-    console.error("Error with creation of round:", error);
-    throw error;
-  }
-};
-
 export const Rounds = ({
   players,
-  numOfPitches,
   onResultsRegistered,
   resetRounds,
+  roundSetting,
+  numOfTeams,
+  numOfPitches,
 }: RoundsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -65,14 +37,25 @@ export const Rounds = ({
       setError("You need two players");
       return;
     }
-    if (numOfPitches < 1) {
+    if (roundSetting !== "pitches" && roundSetting !== "teams") {
+      setError("Error in option selection");
+      return;
+    }
+    if (roundSetting === "pitches" && numOfPitches < 1) {
       setError("You need one pitch");
+      return;
+    }
+    if (roundSetting === "teams" && numOfTeams < 2) {
+      setError("You need two teams");
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      const matches = await createRound(players, numOfPitches);
+      const matches =
+        roundSetting === "pitches"
+          ? await createRoundPitches(players, numOfPitches)
+          : await createRoundTeams(players, numOfTeams);
       setRounds((round) => [...round, matches]);
     } catch (error) {
       setError(
