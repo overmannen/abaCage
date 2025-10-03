@@ -10,6 +10,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
 
   return (
     <div className="table-container">
+      <h2>Tabell</h2>
       <table>
         <tr>
           <th>Plass</th>

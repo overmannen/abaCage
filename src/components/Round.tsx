@@ -42,8 +42,6 @@ export const Round = ({ matches, onResultsSubmit }: RoundProps) => {
     setIsSubmitted(false);
   };
 
-  const hasResults = Object.keys(matchResults).length > 0;
-
   return (
     <div>
       <ul className="round-container">
@@ -64,10 +62,8 @@ export const Round = ({ matches, onResultsSubmit }: RoundProps) => {
         {!isSubmitted ? (
           <button
             onClick={registerResults}
-            disabled={!hasResults}
             style={{
-              backgroundColor: !hasResults ? "#ccc" : "#4CAF50",
-              cursor: !hasResults ? "not-allowed" : "pointer",
+              backgroundColor: "#4CAF50",
               color: "white",
             }}
           >

@@ -33,11 +33,14 @@ function App() {
   );
   const [newPlayer, setNewPlayer] = useState<string | null>(null);
   const [numberOfPitches, setNumberOfPitches] = useState(1);
+  const [numberOfTeams, setNumberOfTeams] = useState(2);
+
   const [resetRounds, setResetRounds] = useState(false);
 
   const processedRounds = useRef<Map<string, ProcessedRound>>(
     new Map(loadFromStorage(STORAGE_KEYS.PROCESSED_ROUNDS, []))
   );
+  const [roundSetting, setRoundSetting] = useState("teams");
 
   const handleInputChangePlayer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewPlayer(e.target.value);
@@ -49,6 +52,10 @@ function App() {
 
   const handleInputChangePitches = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNumberOfPitches(Number(e.target.value));
+  };
+
+  const handleInputChangeTeams = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNumberOfTeams(Number(e.target.value));
   };
 
   const addPlayer = () => {
@@ -69,7 +76,13 @@ function App() {
     saveToStorage(STORAGE_KEYS.PROCESSED_ROUNDS, roundsArray);
   }, []);
 
-  //Må finne ut hvorfor denne legger til 2 ganger, lol
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === "Enter") {
+      addPlayer();
+    }
+  };
+
+  //Må finne ut hvorfor denne legger til 2 ganger
   const calculatePoints = (
     matches: (MatchType & { homeGoals: number; awayGoals: number })[]
   ) => {
@@ -125,10 +138,7 @@ function App() {
       }
 
       const existingRound = Array.from(processedRounds.current.values()).find(
-        (round) =>
-          round.roundId.startsWith(
-            baseRoundId.split("-").slice(0, -1).join("-")
-          )
+        (round) => round.roundId.startsWith(baseRoundId)
       );
 
       setPlayers((prevPlayers) => {
@@ -210,15 +220,52 @@ function App() {
           type="text"
           onChange={handleInputChangePlayer}
           value={newPlayer ? newPlayer : ""}
+          onKeyDown={handleKeyDown}
+          placeholder="Navn..."
         />
         <button onClick={addPlayer}>Legg til spiller</button>
-        <label htmlFor="number-of-pitches">Antall baner</label>
-        <input
-          type="number"
-          value={numberOfPitches}
-          onChange={handleInputChangePitches}
-          id="number-of-pitches"
-        />
+        <div className="round-settings-container">
+          <label htmlFor="number-of-pitches">Antall baner</label>
+          <input
+            type="number"
+            value={numberOfPitches}
+            onChange={handleInputChangePitches}
+            id="number-of-pitches"
+            min={1}
+          />
+          <label htmlFor="number-of-teams">Antall lag</label>
+          <input
+            type="number"
+            value={numberOfTeams}
+            onChange={handleInputChangeTeams}
+            id="number-of-teams"
+            min={2}
+          />
+          <fieldset>
+            <legend className="choice-container">
+              Skal generering av runder være basert på antall lag eller antall
+              baner?
+            </legend>
+            <input
+              type="radio"
+              id="teams"
+              value="teams"
+              name="setting"
+              checked={roundSetting === "teams"}
+              onChange={(e) => setRoundSetting(e.target.value)}
+            ></input>
+            <label htmlFor="teams">Lag</label>
+            <input
+              type="radio"
+              id="pitches"
+              value="pitches"
+              name="setting"
+              checked={roundSetting === "pitches"}
+              onChange={(e) => setRoundSetting(e.target.value)}
+            />
+            <label htmlFor="pitches">Baner</label>
+          </fieldset>
+        </div>
         <button
           onClick={resetAllScores}
           style={{
@@ -244,9 +291,11 @@ function App() {
       <Table players={players} removePlayer={removePlayer} />
       <Rounds
         players={players}
-        numOfPitches={numberOfPitches}
         onResultsRegistered={updatePlayerScores}
         resetRounds={resetRounds}
+        roundSetting={roundSetting}
+        numOfPitches={numberOfPitches}
+        numOfTeams={numberOfTeams}
       />
     </div>
   );
