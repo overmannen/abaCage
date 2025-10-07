@@ -97,6 +97,7 @@ button:focus-visible {
   justify-content: center;
   height: 70px;
   gap: 1rem;
+  align-self: center;
 }
 
 .logo-container h1 {
