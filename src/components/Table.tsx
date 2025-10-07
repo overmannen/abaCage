@@ -12,26 +12,28 @@ export const Table = ({ players, removePlayer }: TableProps) => {
     <div className="table-container">
       <h2>Tabell</h2>
       <table>
-        <tr>
-          <th>Plass</th>
-          <th>Spiller</th>
-          <th>Poeng</th>
-          <th>Spilte kamper</th>
-          <th>{""}</th>
-        </tr>
-        {sortedPlayers.map((player, index) => (
+        <thead>
           <tr>
-            <td>{index + 1}.</td>
-            <td>{player.name}</td>
-            <td>{player.score}</td>
-            <td>{player.matchesPlayed}</td>
-            <td>
-              <button onClick={() => removePlayer(player)}>
-                Slett spiller
-              </button>
-            </td>
+            <th>Plass</th>
+            <th>Spiller</th>
+            <th>Poeng</th>
+            <th>Spilte kamper</th>
+            <th>{""}</th>
           </tr>
-        ))}
+          {sortedPlayers.map((player, index) => (
+            <tr key={player.name}>
+              <td>{index + 1}.</td>
+              <td>{player.name}</td>
+              <td>{player.score}</td>
+              <td>{player.matchesPlayed}</td>
+              <td>
+                <button onClick={() => removePlayer(player)}>
+                  Slett spiller
+                </button>
+              </td>
+            </tr>
+          ))}
+        </thead>
       </table>
     </div>
   );

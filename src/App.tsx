@@ -95,16 +95,16 @@ function App() {
         const teamPlayers = match.homeTeam.split("&");
         teamPlayers.forEach((playerName) => {
           const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 1.5;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 0.5;
+          pointsAwarded[name] = (pointsAwarded[name] || 0) + 3;
+          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
         });
       } else if (match.homeGoals < match.awayGoals) {
         // Bortelag vinner
         const teamPlayers = match.awayTeam.split("&");
         teamPlayers.forEach((playerName) => {
           const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 1.5;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 0.5;
+          pointsAwarded[name] = (pointsAwarded[name] || 0) + 3;
+          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
         });
       } else {
         // Uavgjort
@@ -113,8 +113,8 @@ function App() {
           .concat(match.homeTeam.split("&"));
         allPlayers.forEach((playerName) => {
           const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 0.5;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 0.5;
+          pointsAwarded[name] = (pointsAwarded[name] || 0) + 1;
+          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
         });
       }
     });
@@ -124,10 +124,6 @@ function App() {
 
   const updatePlayerScores = useCallback(
     (matches: (MatchType & { homeGoals: number; awayGoals: number })[]) => {
-      const baseRoundId = matches
-        .map((m) => `${m.homeTeam}-${m.awayTeam}`)
-        .join("|");
-
       const fullRoundId = matches
         .map((m) => `${m.homeTeam}-${m.awayTeam}-${m.homeGoals}-${m.awayGoals}`)
         .join("|");
@@ -136,6 +132,10 @@ function App() {
         console.log("Exact same results already processed, skipping");
         return;
       }
+
+      const baseRoundId = matches
+        .map((m) => `${m.homeTeam}-${m.awayTeam}`)
+        .join("|");
 
       const existingRound = Array.from(processedRounds.current.values()).find(
         (round) => round.roundId.startsWith(baseRoundId)
@@ -160,6 +160,7 @@ function App() {
         }
 
         const pointsAwarded = calculatePoints(matches);
+        console.log(pointsAwarded);
 
         //Nye poeng
         Object.entries(pointsAwarded).forEach(([playerName, points]) => {
