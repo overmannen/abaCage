@@ -21,7 +21,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://abacage.lyngner.com/",
+        "https://abacage.lyngner.com",
+        "https://*.lyngner.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
