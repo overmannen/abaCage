@@ -357,7 +357,6 @@ button:focus-visible {
   margin-bottom: 1rem;
 }
 
-/* LIST STYLING */
 ol, ul {
   padding-left: 1.5rem;
 }
@@ -366,7 +365,6 @@ li {
   margin: 0.5rem 0;
 }
 
-/* ERROR STYLING */
 .error {
   color: #ff6b6b;
   background-color: rgba(255, 107, 107, 0.1);
@@ -386,4 +384,10 @@ li {
 
 .number-of-pitches {
   width: 10px;
+}
+
+
+.generator-container {
+  display: flex;
+  gap: 1rem;
 }

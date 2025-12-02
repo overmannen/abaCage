@@ -21,11 +21,3 @@ export const useLocalStorage = <T,>(key: string, defaultValue: T) => {
 
   return [value, setValue] as const;
 };
-
-export const saveToStorage = <T,>(key: string, value: T): void => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error storing ${key} to localStorage:`, error);
-  }
-};
