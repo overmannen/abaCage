@@ -257,7 +257,8 @@ button:focus-visible {
   .table-container {
     grid-column: 2;
     grid-row: 2;
-    padding: 1.5rem;
+    padding-right: 0rem;
+    padding-top: 1.5rem;
   }
 }
 
@@ -271,13 +272,13 @@ button:focus-visible {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9em;
+  font-size: 0.7em;
 }
 
 .table-container th,
 .table-container td {
   padding: 0.5rem;
-  text-align: left;
+  text-align: center;
 }
 
 @media (min-width: 768px) {
@@ -287,7 +288,7 @@ button:focus-visible {
   
   .table-container th,
   .table-container td {
-    padding: 0.75rem;
+    padding: 0.3rem;
   }
 }
 
@@ -391,3 +392,4 @@ li {
   display: flex;
   gap: 1rem;
 }
+

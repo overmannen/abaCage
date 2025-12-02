@@ -18,6 +18,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
             <th>Spiller</th>
             <th>Poeng</th>
             <th>Spilte kamper</th>
+            <th>Målforskjell</th>
             <th>{""}</th>
           </tr>
         </thead>
@@ -28,6 +29,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
               <td>{player.name}</td>
               <td>{player.score}</td>
               <td>{player.matchesPlayed}</td>
+              <td>{player.goalDifference}</td>
               <td>
                 <button onClick={() => removePlayer(player)}>
                   Slett spiller

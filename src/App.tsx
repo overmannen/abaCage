@@ -8,6 +8,7 @@ export type PlayerType = {
   name: string;
   score: number;
   matchesPlayed: number;
+  goalDifference: number;
 };
 export type MatchType = {
   homeTeam: TeamType;
@@ -62,6 +63,7 @@ function App() {
         name: newPlayer.trim(),
         score: 0,
         matchesPlayed: 0,
+        goalDifference: 0,
       },
     ]);
     setNewPlayer("");
@@ -158,12 +160,14 @@ function App() {
             if (p) {
               p.score += 3;
               p.matchesPlayed += 1;
+              p.goalDifference += match.homeGoals - match.awayGoals;
             }
           });
           match.awayTeam.players.forEach((player) => {
             const p = updatedPlayers.find((up) => up.name === player.name);
             if (p) {
               p.matchesPlayed += 1;
+              p.goalDifference += match.awayGoals - match.homeGoals;
             }
           });
         } else if (match.homeGoals < match.awayGoals) {
@@ -172,12 +176,14 @@ function App() {
             if (p) {
               p.score += 3;
               p.matchesPlayed += 1;
+              p.goalDifference += match.homeGoals - match.awayGoals;
             }
           });
           match.homeTeam.players.forEach((player) => {
             const p = updatedPlayers.find((up) => up.name === player.name);
             if (p) {
               p.matchesPlayed += 1;
+              p.goalDifference += match.homeGoals - match.awayGoals;
             }
           });
         } else {
@@ -186,6 +192,7 @@ function App() {
             if (p) {
               p.score += 1;
               p.matchesPlayed += 1;
+              p.goalDifference += match.awayGoals - match.homeGoals;
             }
           });
           match.homeTeam.players.forEach((player) => {
@@ -193,6 +200,7 @@ function App() {
             if (p) {
               p.score += 1;
               p.matchesPlayed += 1;
+              p.goalDifference += match.homeGoals - match.awayGoals;
             }
           });
         }
