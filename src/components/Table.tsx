@@ -6,7 +6,7 @@ type TableProps = {
 };
 
 export const Table = ({ players, removePlayer }: TableProps) => {
-  const sortedPlayers = players.sort((a, b) => b.score - a.score);
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
     <div className="table-container">
@@ -20,6 +20,8 @@ export const Table = ({ players, removePlayer }: TableProps) => {
             <th>Spilte kamper</th>
             <th>{""}</th>
           </tr>
+        </thead>
+        <tbody>
           {sortedPlayers.map((player, index) => (
             <tr key={player.name}>
               <td>{index + 1}.</td>
@@ -33,7 +35,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
               </td>
             </tr>
           ))}
-        </thead>
+        </tbody>
       </table>
     </div>
   );

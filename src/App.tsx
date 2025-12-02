@@ -1,216 +1,213 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Table } from "./components/Table";
-import { Rounds } from "./components/Rounds";
-import type { MatchType } from "./components/Match";
 import { Logo } from "./components/Logo";
-import {
-  useLocalStorage,
-  saveToStorage,
-  loadFromStorage,
-} from "./localStorageLogic";
+import { createRound } from "./modules/roundGenerator";
+import { useLocalStorage } from "./modules/localStorageLogic";
 
 export type PlayerType = {
   name: string;
   score: number;
   matchesPlayed: number;
 };
+export type MatchType = {
+  homeTeam: TeamType;
+  awayTeam: TeamType;
+  homeGoals: number;
+  awayGoals: number;
+  matchIndex: number;
+  roundNumber: number;
+};
 
-type ProcessedRound = {
-  roundId: string;
-  matches: (MatchType & { homeGoals: number; awayGoals: number })[];
-  pointsAwarded: { [playerName: string]: number };
+export type RoundType = {
+  matches: MatchType[];
+};
+
+export type TeamType = {
+  players: PlayerType[];
 };
 
 const STORAGE_KEYS = {
-  PLAYERS: "tournemant_players",
-  PROCESSED_ROUNDS: "tournement_processed_rounds",
+  PLAYERS: "players",
+  ROUNDS: "rounds",
 };
 
 function App() {
+  const [newPlayer, setNewPlayer] = useState("");
   const [players, setPlayers] = useLocalStorage<PlayerType[]>(
     STORAGE_KEYS.PLAYERS,
     []
   );
-  const [newPlayer, setNewPlayer] = useState<string | null>(null);
+
   const [numberOfPitches, setNumberOfPitches] = useState(1);
   const [numberOfTeams, setNumberOfTeams] = useState(2);
+  const [isPitches, setIsPitches] = useState(false);
 
-  const [resetRounds, setResetRounds] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const processedRounds = useRef<Map<string, ProcessedRound>>(
-    new Map(loadFromStorage(STORAGE_KEYS.PROCESSED_ROUNDS, []))
+  const [rounds, setRounds] = useLocalStorage<RoundType[]>(
+    STORAGE_KEYS.ROUNDS,
+    []
   );
-  const [roundSetting, setRoundSetting] = useState("teams");
-
-  const handleInputChangePlayer = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewPlayer(e.target.value);
-  };
-
-  const removePlayer = (player: PlayerType) => {
-    setPlayers((prev) => prev.filter((p) => p !== player));
-  };
-
-  const handleInputChangePitches = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNumberOfPitches(Number(e.target.value));
-  };
-
-  const handleInputChangeTeams = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNumberOfTeams(Number(e.target.value));
-  };
 
   const addPlayer = () => {
-    if (!newPlayer) return;
+    if (!newPlayer.trim()) return;
+    if (players.find((p) => p.name === newPlayer)) {
+      setError("Hver spiller må ha unikt navn");
+      return;
+    }
     setPlayers((prev) => [
       ...prev,
-      { name: newPlayer, score: 0, matchesPlayed: 0 },
+      {
+        name: newPlayer.trim(),
+        score: 0,
+        matchesPlayed: 0,
+      },
     ]);
     setNewPlayer("");
   };
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.PLAYERS, players);
-  }, [players]);
-
-  const saveProcessedRounds = useCallback(() => {
-    const roundsArray = Array.from(processedRounds.current.entries());
-    saveToStorage(STORAGE_KEYS.PROCESSED_ROUNDS, roundsArray);
-  }, []);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter") {
-      addPlayer();
-    }
+  const removePlayer = (player: PlayerType) => {
+    setPlayers((prev) => prev.filter((p) => p.name !== player.name));
   };
-
-  //Må finne ut hvorfor denne legger til 2 ganger
-  const calculatePoints = (
-    matches: (MatchType & { homeGoals: number; awayGoals: number })[]
-  ) => {
-    const pointsAwarded: { [playerName: string]: number } = {};
-    const matchesPlayed: { [playerName: string]: number } = {};
-
-    matches.forEach((match) => {
-      if (match.homeGoals > match.awayGoals) {
-        // Hjemmelag vinner
-        const teamPlayers = match.homeTeam.split("&");
-        teamPlayers.forEach((playerName) => {
-          const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 3;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
-        });
-      } else if (match.homeGoals < match.awayGoals) {
-        // Bortelag vinner
-        const teamPlayers = match.awayTeam.split("&");
-        teamPlayers.forEach((playerName) => {
-          const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 3;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
-        });
-      } else {
-        // Uavgjort
-        const allPlayers = match.awayTeam
-          .split("&")
-          .concat(match.homeTeam.split("&"));
-        allPlayers.forEach((playerName) => {
-          const name = playerName.trim();
-          pointsAwarded[name] = (pointsAwarded[name] || 0) + 1;
-          matchesPlayed[name] = (matchesPlayed[name] || 0) + 1;
-        });
-      }
-    });
-
-    return pointsAwarded;
-  };
-
-  const updatePlayerScores = useCallback(
-    (matches: (MatchType & { homeGoals: number; awayGoals: number })[]) => {
-      const fullRoundId = matches
-        .map((m) => `${m.homeTeam}-${m.awayTeam}-${m.homeGoals}-${m.awayGoals}`)
-        .join("|");
-
-      if (processedRounds.current.has(fullRoundId)) {
-        console.log("Exact same results already processed, skipping");
-        return;
-      }
-
-      const baseRoundId = matches
-        .map((m) => `${m.homeTeam}-${m.awayTeam}`)
-        .join("|");
-
-      const existingRound = Array.from(processedRounds.current.values()).find(
-        (round) => round.roundId.startsWith(baseRoundId)
-      );
-
-      setPlayers((prevPlayers) => {
-        const updatedPlayers = [...prevPlayers];
-
-        //Fjerne gamle poeng
-        if (existingRound) {
-          Object.entries(existingRound.pointsAwarded).forEach(
-            ([playerName, points]) => {
-              const playerIndex = updatedPlayers.findIndex(
-                (p) => p.name === playerName
-              );
-              if (playerIndex !== -1) {
-                updatedPlayers[playerIndex].score -= points;
-              }
-            }
-          );
-          processedRounds.current.delete(existingRound.roundId);
-        }
-
-        const pointsAwarded = calculatePoints(matches);
-        console.log(pointsAwarded);
-
-        //Nye poeng
-        Object.entries(pointsAwarded).forEach(([playerName, points]) => {
-          const playerIndex = updatedPlayers.findIndex(
-            (p) => p.name === playerName
-          );
-          if (playerIndex !== -1) {
-            updatedPlayers[playerIndex].score += points;
-          }
-        });
-
-        processedRounds.current.set(fullRoundId, {
-          roundId: fullRoundId,
-          matches: matches,
-          pointsAwarded: pointsAwarded,
-        });
-        saveProcessedRounds();
-
-        return updatedPlayers;
-      });
-    },
-    [saveProcessedRounds]
-  );
 
   const resetAllScores = () => {
-    if (
-      window.confirm(
-        "Er du sikker på at du vil slette alle poengene og kampene?"
-      )
-    ) {
-      setResetRounds(true);
-      processedRounds.current.clear();
-      setPlayers((prev) => prev.map((player) => ({ ...player, score: 0 })));
-      localStorage.removeItem(STORAGE_KEYS.PROCESSED_ROUNDS);
+    if (!window.confirm("Slette alle poeng og runder?")) return;
+    setPlayers((prev) =>
+      prev.map((player) => ({
+        ...player,
+        score: 0,
+        matchesPlayed: 0,
+      }))
+    );
+    setRounds([]);
+  };
+
+  const setRoundSetting = (setting: string) => {
+    if (setting === "pitches") {
+      setIsPitches(true);
+    } else {
+      setIsPitches(false);
     }
   };
 
-  useEffect(() => {
-    setResetRounds(false);
-  }, [resetRounds]);
-
   const resetAllData = () => {
-    if (window.confirm("Er du sikker på at du vil slette all data?")) {
-      processedRounds.current.clear();
-      setResetRounds(true);
-      setPlayers([]);
-      setNewPlayer("");
-      localStorage.removeItem(STORAGE_KEYS.PLAYERS);
-      localStorage.removeItem(STORAGE_KEYS.PROCESSED_ROUNDS);
+    if (!window.confirm("Slette all data?")) return;
+    setPlayers([]);
+    setNewPlayer("");
+    setRounds([]);
+  };
+
+  const generateRound = () => {
+    if (players.length < 2) {
+      setError("Du trenger minst 2 spillere");
+      return;
     }
+
+    if (numberOfPitches < 1) {
+      setError("Du trenger minst 1 bane");
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+
+    const num = isPitches ? numberOfPitches * 2 : numberOfTeams;
+    const playersCopy = players.map((p) => ({ ...p }));
+    const currentRoundNumber = rounds.length;
+
+    try {
+      const newRound = createRound({
+        players: playersCopy,
+        num,
+        roundNumber: currentRoundNumber,
+      });
+      if (!newRound.error && newRound.matches) {
+        const round = {
+          matches: newRound.matches,
+          roundNumber: currentRoundNumber,
+        };
+        setRounds((prev) => [...prev, round]);
+      } else if (newRound.error) {
+        setError(newRound.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunne ikke lage kamper");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatTeam = (team: PlayerType[]) => {
+    const teamPlayers = team.map((player) => player.name);
+    return teamPlayers.join(" & ");
+  };
+
+  const playerScores = useMemo(() => {
+    const updatedPlayers = players.map((player) => ({
+      ...player,
+      score: 0,
+      matchesPlayed: 0,
+    }));
+
+    rounds.forEach((round) =>
+      round.matches.forEach((match) => {
+        if (match.homeGoals > match.awayGoals) {
+          match.homeTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.score += 3;
+              p.matchesPlayed += 1;
+            }
+          });
+          match.awayTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.matchesPlayed += 1;
+            }
+          });
+        } else if (match.homeGoals < match.awayGoals) {
+          match.awayTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.score += 3;
+              p.matchesPlayed += 1;
+            }
+          });
+          match.homeTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.matchesPlayed += 1;
+            }
+          });
+        } else {
+          match.awayTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.score += 1;
+              p.matchesPlayed += 1;
+            }
+          });
+          match.homeTeam.players.forEach((player) => {
+            const p = updatedPlayers.find((up) => up.name === player.name);
+            if (p) {
+              p.score += 1;
+              p.matchesPlayed += 1;
+            }
+          });
+        }
+      })
+    );
+
+    return updatedPlayers;
+  }, [players, rounds]);
+
+  useEffect(() => {
+    setTimeout(resetError, 3000);
+  }, [error]);
+
+  const resetError = () => {
+    setError(null);
   };
 
   return (
@@ -219,85 +216,122 @@ function App() {
         <input
           id="new-player"
           type="text"
-          onChange={handleInputChangePlayer}
-          value={newPlayer ? newPlayer : ""}
-          onKeyDown={handleKeyDown}
+          value={newPlayer}
+          onChange={(e) => setNewPlayer(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addPlayer()}
           placeholder="Navn..."
         />
         <button onClick={addPlayer}>Legg til spiller</button>
+
         <div className="round-settings-container">
-          <label htmlFor="number-of-pitches">Antall baner</label>
+          <label htmlFor="pitches">Antall baner</label>
           <input
+            id="pitches"
             type="number"
             value={numberOfPitches}
-            onChange={handleInputChangePitches}
-            id="number-of-pitches"
-            min={1}
+            onChange={(e) =>
+              setNumberOfPitches(Math.max(1, Number(e.target.value)))
+            }
+            min="1"
           />
-          <label htmlFor="number-of-teams">Antall lag</label>
+
+          <label htmlFor="teams">Antall lag</label>
           <input
+            id="teams"
             type="number"
             value={numberOfTeams}
-            onChange={handleInputChangeTeams}
-            id="number-of-teams"
-            min={2}
+            onChange={(e) =>
+              setNumberOfTeams(Math.max(2, Number(e.target.value)))
+            }
+            min="2"
           />
+
           <fieldset>
-            <legend className="choice-container">
-              Skal generering av runder være basert på antall lag eller antall
-              baner?
-            </legend>
-            <input
-              type="radio"
-              id="teams"
-              value="teams"
-              name="setting"
-              checked={roundSetting === "teams"}
-              onChange={(e) => setRoundSetting(e.target.value)}
-            ></input>
-            <label htmlFor="teams">Lag</label>
-            <input
-              type="radio"
-              id="pitches"
-              value="pitches"
-              name="setting"
-              checked={roundSetting === "pitches"}
-              onChange={(e) => setRoundSetting(e.target.value)}
-            />
-            <label htmlFor="pitches">Baner</label>
+            <legend>Basert på lag eller baner?</legend>
+            {(["teams", "pitches"] as const).map((setting) => (
+              <div key={setting}>
+                <input
+                  id={setting}
+                  type="radio"
+                  name="setting"
+                  value={setting}
+                  defaultChecked={setting === "teams"}
+                  onChange={(e) =>
+                    setRoundSetting(e.target.value as "teams" | "pitches")
+                  }
+                />
+                <label htmlFor={setting}>
+                  {setting === "teams" ? "Lag" : "Baner"}
+                </label>
+              </div>
+            ))}
           </fieldset>
         </div>
-        <button
-          onClick={resetAllScores}
-          style={{
-            marginLeft: "10px",
-            backgroundColor: "#f6837b",
-            color: "white",
-          }}
-        >
+
+        <button onClick={resetAllScores} style={{ backgroundColor: "#f6837b" }}>
           Nullstill poeng og kamper
         </button>
-        <button
-          onClick={resetAllData}
-          style={{
-            marginLeft: "10px",
-            backgroundColor: "#f44336",
-            color: "white",
-          }}
-        >
+        <button onClick={resetAllData} style={{ backgroundColor: "#f44336" }}>
           Slett alt
         </button>
       </div>
+
       <Logo />
-      <Table players={players} removePlayer={removePlayer} />
-      <Rounds
-        players={players}
-        onResultsRegistered={updatePlayerScores}
-        resetRounds={resetRounds}
-        roundSetting={roundSetting}
-        numOfPitches={numberOfPitches}
-        numOfTeams={numberOfTeams}
-      />
+      <Table players={playerScores} removePlayer={removePlayer} />
+      <div className="rounds-container">
+        <div className="generator-container">
+          <button onClick={generateRound} disabled={isLoading}>
+            {isLoading ? "Laster..." : "Lag ny runde"}
+          </button>
+          {error && <div className="error">{error}</div>}
+        </div>
+        {rounds.map((round, index) => (
+          <li key={`round-${index}-${round.matches.length}`}>
+            {" "}
+            <h4>Runde {index + 1}</h4>
+            {round.matches.map((match, index) => (
+              <div className="match" key={index}>
+                <div className="teams">
+                  <p className="home-team">
+                    {formatTeam(match.homeTeam.players)}
+                  </p>
+                  <p className="versus">mot</p>
+                  <p className="away-team">
+                    {formatTeam(match.awayTeam.players)}:
+                  </p>
+                </div>
+                <div className="goals">
+                  <input
+                    type="number"
+                    value={match.homeGoals}
+                    min="0"
+                    onChange={(e) => {
+                      const newRounds = [...rounds];
+                      newRounds[match.roundNumber].matches[
+                        match.matchIndex
+                      ].homeGoals = Math.max(0, Number(e.target.value));
+                      setRounds(newRounds);
+                    }}
+                  />
+                  -
+                  <input
+                    type="number"
+                    value={match.awayGoals}
+                    min="0"
+                    onChange={(e) => {
+                      const newRounds = [...rounds];
+                      newRounds[match.roundNumber].matches[
+                        match.matchIndex
+                      ].awayGoals = Math.max(0, Number(e.target.value));
+                      setRounds(newRounds);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </li>
+        ))}
+      </div>
     </div>
   );
 }
