@@ -6,7 +6,9 @@ type TableProps = {
 };
 
 export const Table = ({ players, removePlayer }: TableProps) => {
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = [...players]
+    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.goalDifference - a.goalDifference);
 
   return (
     <div className="table-container">
@@ -18,6 +20,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
             <th>Spiller</th>
             <th>Poeng</th>
             <th>Spilte kamper</th>
+            <th>Målforskjell</th>
             <th>{""}</th>
           </tr>
         </thead>
@@ -28,6 +31,7 @@ export const Table = ({ players, removePlayer }: TableProps) => {
               <td>{player.name}</td>
               <td>{player.score}</td>
               <td>{player.matchesPlayed}</td>
+              <td>{player.goalDifference}</td>
               <td>
                 <button onClick={() => removePlayer(player)}>
                   Slett spiller
