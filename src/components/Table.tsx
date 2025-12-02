@@ -6,7 +6,9 @@ type TableProps = {
 };
 
 export const Table = ({ players, removePlayer }: TableProps) => {
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = [...players]
+    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.goalDifference - a.goalDifference);
 
   return (
     <div className="table-container">

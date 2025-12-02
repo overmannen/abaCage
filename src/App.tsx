@@ -218,6 +218,10 @@ function App() {
     setError(null);
   };
 
+  const removeRound = (round: RoundType) => {
+    setRounds((prev) => prev.filter((r) => r !== round));
+  };
+
   return (
     <div className="container">
       <div className="settings-container">
@@ -335,6 +339,7 @@ function App() {
                     }}
                   />
                 </div>
+                <button onClick={() => removeRound(round)}>Slett runde</button>
               </div>
             ))}
           </li>
