@@ -3,6 +3,7 @@ import { Table } from "./components/Table";
 import { Logo } from "./components/Logo";
 import { createRound } from "./modules/roundGenerator";
 import { useLocalStorage } from "./modules/localStorageLogic";
+import { Timer } from "./components/Timer";
 
 export type PlayerType = {
   name: string;
@@ -286,6 +287,7 @@ function App() {
         <button onClick={resetAllData} style={{ backgroundColor: "#f44336" }}>
           Slett alt
         </button>
+        <Timer />
       </div>
 
       <Logo />
