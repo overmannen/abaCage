@@ -17,10 +17,10 @@ export const Table = ({ players, removePlayer }: TableProps) => {
         <thead>
           <tr>
             <th>Plass</th>
-            <th>Spiller</th>
-            <th>Poeng</th>
-            <th>Spilte kamper</th>
-            <th>Målforskjell</th>
+            <th>S</th>
+            <th>P</th>
+            <th>SK</th>
+            <th>MF</th>
             <th>{""}</th>
           </tr>
         </thead>
