@@ -27,8 +27,10 @@ export const Timer = () => {
 
   useEffect(() => {
     if (isDone) {
+      soundRef.current.load();
       soundRef.current.play();
-      setIsDone(false);
+    } else {
+      soundRef.current.pause();
     }
   }, [isDone]);
 
@@ -57,10 +59,11 @@ export const Timer = () => {
   const updateTimer = useMemo(() => {
     const min = Math.floor(time / 1000 / 60);
     const sec = (time % 60000) / 1000;
-    return `${min}:${sec}`;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
   }, [time]);
 
   const resetTimer = () => {
+    setIsDone(false);
     setIsRunning(false);
     const minToSec = minutes * 60;
     const totalSec = minToSec + seconds;
@@ -82,7 +85,7 @@ export const Timer = () => {
         <p className="timer-text">sek</p>
       </div>
 
-      <div className="time-container">
+      <div className={`time-container ${isDone ? "flashing" : ""}`}>
         <p className="time">{updateTimer}</p>
       </div>
       <div className="timer-buttons">
