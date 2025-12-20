@@ -13,9 +13,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+
 a {
   font-weight: 500;
-  color: #646cff;
+  color:  rgba(255, 255, 255, 0.87);
   text-decoration: inherit;
 }
 a:hover {
@@ -25,9 +31,10 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  justify-content: left;
+  justify-content: center;
+  align-items: flex-start;
   padding-top: 10px;
+  min-height: 100vh;
 }
 
 h1 {
@@ -42,7 +49,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #242424;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -262,7 +269,7 @@ button:focus-visible {
   }
 }
 
-/* ROUNDS AND TABLE SECTIONS */
+
 .rounds-container h2,
 .table-container h2 {
   font-size: 1.5em;
@@ -348,7 +355,7 @@ button:focus-visible {
   gap: 0.5rem;
 }
 
-/* ROUND STYLING */
+
 .round {
   margin-bottom: 1.5rem;
 }
@@ -398,6 +405,7 @@ li {
   display: flex;
   justify-content: center;
   margin-top: 0.5rem;
+  gap: 0.1rem;
 }
 
 .timer-inputs {
@@ -418,8 +426,13 @@ li {
   justify-content: center;
   align-items: center;
   margin: 0rem;
-  border: rgba(255, 244, 244, 0.761);
-  border-style: groove;
+  border-radius: 8px;
+  border: 1px solid  rgba(255, 255, 255, 0.05);
+  background-color:  rgba(255, 255, 255, 0.05);;
+}
+
+.flashing {
+  animation: flashing 0.5s infinite;  
 }
 
 
@@ -432,6 +445,16 @@ li {
 .timer-text {
   display: flex;
   align-items: center;
+}
+
+
+@-webkit-keyframes flashing {
+  0%, 49% {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  50%, 100% {
+    background-color: #f44336;
+  }
 }
 
 
