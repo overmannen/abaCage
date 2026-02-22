@@ -61,18 +61,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+
 
 .container {
   display: grid;
@@ -448,7 +437,7 @@ li {
 }
 
 
-@-webkit-keyframes flashing {
+@keyframes flashing {
   0%, 49% {
     background-color: rgba(255, 255, 255, 0.05);
   }
@@ -456,6 +445,52 @@ li {
     background-color: #f44336;
   }
 }
+
+
+
+.goal-btn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.goal-score {
+  font-size: 1.4rem;
+  font-weight: bold;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.goal-separator {
+  margin: 0 0.5rem;
+  opacity: 0.5;
+}
+
+.winning {
+  color: #3aa53e;
+}
+
+.round-info {
+  display: flex;
+  gap: 2rem;
+}
+
+@keyframes scoreFlash {
+  0%   { background-color: rgba(100, 108, 255, 0.4); transform: scale(1.15); }
+  100% { background-color: transparent; transform: scale(1); }
+}
+
+.score-changed {
+  animation: scoreFlash 0.6s ease-out;
+  border-radius: 4px;
+}
+
+
+
 
 
 

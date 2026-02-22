@@ -6,9 +6,9 @@ type TableProps = {
 };
 
 export const Table = ({ players, removePlayer }: TableProps) => {
-  const sortedPlayers = [...players]
-    .sort((a, b) => b.score - a.score)
-    .sort((a, b) => b.goalDifference - a.goalDifference);
+  const sortedPlayers = [...players].sort(
+    (a, b) => b.score - a.score || b.goalDifference - a.goalDifference,
+  );
 
   return (
     <div className="table-container">
@@ -26,12 +26,18 @@ export const Table = ({ players, removePlayer }: TableProps) => {
         </thead>
         <tbody>
           {sortedPlayers.map((player, index) => (
-            <tr key={player.name}>
+            <tr key={player.name} className="table-row">
               <td>{index + 1}.</td>
               <td>{player.name}</td>
-              <td>{player.score}</td>
-              <td>{player.matchesPlayed}</td>
-              <td>{player.goalDifference}</td>
+              <td key={`score-${player.score}`} className="score-changed">
+                {player.score}
+              </td>
+              <td key={`matches-${player.matchesPlayed}`}>
+                {player.matchesPlayed}
+              </td>
+              <td key={`gd-${player.goalDifference}`} className="score-changed">
+                {player.goalDifference}
+              </td>
               <td>
                 <button onClick={() => removePlayer(player)}>
                   Slett spiller

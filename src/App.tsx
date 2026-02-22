@@ -37,7 +37,7 @@ function App() {
   const [newPlayer, setNewPlayer] = useState("");
   const [players, setPlayers] = useLocalStorage<PlayerType[]>(
     STORAGE_KEYS.PLAYERS,
-    []
+    [],
   );
 
   const [numberOfPitches, setNumberOfPitches] = useState(1);
@@ -49,7 +49,7 @@ function App() {
 
   const [rounds, setRounds] = useLocalStorage<RoundType[]>(
     STORAGE_KEYS.ROUNDS,
-    []
+    [],
   );
 
   const addPlayer = () => {
@@ -81,7 +81,7 @@ function App() {
         ...player,
         score: 0,
         matchesPlayed: 0,
-      }))
+      })),
     );
     setRounds([]);
   };
@@ -141,6 +141,36 @@ function App() {
     }
   };
 
+  const copyRound = (roundToCopy: RoundType) => {
+    if (players.length < 2) {
+      setError("Du trenger minst 2 spillere");
+      return;
+    }
+
+    if (numberOfPitches < 1) {
+      setError("Du trenger minst 1 bane");
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+
+    const currentRoundNumber = rounds.length;
+
+    const newRound: RoundType = {
+      matches: roundToCopy.matches.map((m, i) => ({
+        ...m,
+        homeGoals: 0,
+        awayGoals: 0,
+        matchIndex: i,
+        roundNumber: currentRoundNumber,
+      })),
+    };
+
+    setRounds((prev) => [...prev, newRound]);
+    setIsLoading(false);
+  };
+
   const formatTeam = (team: PlayerType[]) => {
     const teamPlayers = team.map((player) => player.name);
     return teamPlayers.join(" & ");
@@ -177,7 +207,7 @@ function App() {
             if (p) {
               p.score += 3;
               p.matchesPlayed += 1;
-              p.goalDifference += match.homeGoals - match.awayGoals;
+              p.goalDifference += match.awayGoals - match.homeGoals;
             }
           });
           match.homeTeam.players.forEach((player) => {
@@ -205,7 +235,7 @@ function App() {
             }
           });
         }
-      })
+      }),
     );
 
     return updatedPlayers;
@@ -302,46 +332,86 @@ function App() {
         {rounds.map((round, index) => (
           <li key={`round-${index}-${round.matches.length}`}>
             {" "}
-            <h4>Runde {index + 1}</h4>
+            <div className="round-info">
+              <h4>Runde {index + 1}</h4>
+              <button
+                onClick={() => removeRound(round)}
+                className="delete-round"
+              >
+                Slett runde
+              </button>
+            </div>
             {round.matches.map((match, index) => (
               <div className="match" key={index}>
                 <div className="teams">
-                  <p className="home-team">
+                  <p
+                    className={`home-team ${match.homeGoals > match.awayGoals ? "winning" : ""}`}
+                  >
                     {formatTeam(match.homeTeam.players)}
                   </p>
                   <p className="versus">mot</p>
-                  <p className="away-team">
+                  <p
+                    className={`away-team ${match.homeGoals < match.awayGoals ? "winning" : ""}`}
+                  >
                     {formatTeam(match.awayTeam.players)}:
                   </p>
                 </div>
                 <div className="goals">
-                  <input
-                    type="number"
-                    value={match.homeGoals}
-                    min="0"
-                    onChange={(e) => {
+                  <button
+                    className="goal-btn"
+                    onClick={() => {
                       const newRounds = [...rounds];
                       newRounds[match.roundNumber].matches[
                         match.matchIndex
-                      ].homeGoals = Math.max(0, Number(e.target.value));
+                      ].homeGoals = Math.max(0, match.homeGoals - 1);
                       setRounds(newRounds);
                     }}
-                  />
-                  -
-                  <input
-                    type="number"
-                    value={match.awayGoals}
-                    min="0"
-                    onChange={(e) => {
+                  >
+                    −
+                  </button>
+                  <span className="goal-score">{match.homeGoals}</span>
+                  <button
+                    className="goal-btn"
+                    onClick={() => {
                       const newRounds = [...rounds];
                       newRounds[match.roundNumber].matches[
                         match.matchIndex
-                      ].awayGoals = Math.max(0, Number(e.target.value));
+                      ].homeGoals = match.homeGoals + 1;
                       setRounds(newRounds);
                     }}
-                  />
+                  >
+                    +
+                  </button>
+
+                  <span className="goal-separator">–</span>
+
+                  <button
+                    className="goal-btn"
+                    onClick={() => {
+                      const newRounds = [...rounds];
+                      newRounds[match.roundNumber].matches[
+                        match.matchIndex
+                      ].awayGoals = Math.max(0, match.awayGoals - 1);
+                      setRounds(newRounds);
+                    }}
+                  >
+                    −
+                  </button>
+                  <span className="goal-score">{match.awayGoals}</span>
+                  <button
+                    className="goal-btn"
+                    onClick={() => {
+                      const newRounds = [...rounds];
+                      newRounds[match.roundNumber].matches[
+                        match.matchIndex
+                      ].awayGoals = match.awayGoals + 1;
+                      setRounds(newRounds);
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
-                <button onClick={() => removeRound(round)}>Slett runde</button>
+                <button onClick={() => copyRound(round)}>Kopier runde</button>
               </div>
             ))}
           </li>
